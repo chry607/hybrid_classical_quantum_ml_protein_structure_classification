@@ -50,6 +50,7 @@ Install:
 # ==============================================================================
 # IMPORTS
 # ==============================================================================
+import os
 import time
 import warnings
 import numpy as np
@@ -98,6 +99,7 @@ CFG = dict(
     opt_val_size        = 60,       # hold-out inside objective
     opt_maxiter         = 80,       # COBYLA iterations per circuit
     opt_rhobeg          = 0.4,      # COBYLA initial step size
+    output_dir          = "test3_results",  # output directory for all generated files
     output_csv          = "quantum_protein_results.csv",
     output_png          = "quantum_protein_comparison.png",
     class_names         = ["Helix", "Sheet", "Coil"],
@@ -537,6 +539,9 @@ def plot_class_distribution(y_before: np.ndarray, y_after: np.ndarray,
 def main():
     t_total_start = time.time()
 
+    # Create output directory
+    os.makedirs(CFG["output_dir"], exist_ok=True)
+
     print("\n" + "=" * 66)
     print("  Quantum-Enhanced Protein Structure Learning  -- v3")
     print("  Optimised Variational Parameters via COBYLA")
@@ -759,17 +764,19 @@ def main():
           f"{_delta(acc_q_opt, acc_q_rand)}")
 
     # ── [9] Save CSV ───────────────────────────────────────────────────────────
-    df.to_csv(CFG["output_csv"], index_label="Rank")
-    print(f"\n  [OK] Results saved --> {CFG['output_csv']}")
+    csv_path = os.path.join(CFG["output_dir"], CFG["output_csv"])
+    df.to_csv(csv_path, index_label="Rank")
+    print(f"\n  [OK] Results saved --> {csv_path}")
 
     # ── [10] Figures ───────────────────────────────────────────────────────────
     print("\n[5]  Generating Figures")
     plot_df = df.copy()
     plot_df["Model"] = plot_df["Model"].str.replace(" | ", "\n", regex=False)
-    plot_results(plot_df, CFG["output_png"])
-    plot_confusion_matrices(conf_records, CFG["output_png"])
-    plot_optimisation_curves(opt_curves, CFG["output_png"])
-    plot_class_distribution(y_imbalanced, y, CFG["output_png"])
+    png_path = os.path.join(CFG["output_dir"], CFG["output_png"])
+    plot_results(plot_df, png_path)
+    plot_confusion_matrices(conf_records, png_path)
+    plot_optimisation_curves(opt_curves, png_path)
+    plot_class_distribution(y_imbalanced, y, png_path)
 
     # ── [11] Final summary ─────────────────────────────────────────────────────
     best    = df.iloc[0]

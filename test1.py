@@ -38,6 +38,7 @@ Requirements:
 # ==============================================================================
 # IMPORTS
 # ==============================================================================
+import os
 import time
 import warnings
 
@@ -81,6 +82,7 @@ CFG = dict(
     seq_len=4,  # feature length == number of qubits
     test_size=0.20,  # 80/20 split
     random_seed=42,
+    output_dir="test1_results",  # output directory for all generated files
     output_csv="quantum_protein_results.csv",
     output_png="quantum_protein_comparison.png",
     class_names=["Helix", "Sheet", "Coil"],
@@ -479,6 +481,9 @@ def plot_confusion_matrices(results_raw: list, save_path_prefix: str):
 def main():
     t_total_start = time.time()
 
+    # ── Create output directory ────────────────────────────────────────────────
+    os.makedirs(CFG["output_dir"], exist_ok=True)
+
     # ── Banner ─────────────────────────────────────────────────────────────────
     print("\n" + "=" * 62)
     print("  Quantum-Enhanced Protein Structure Learning")
@@ -595,15 +600,17 @@ def main():
     print("═" * 72)
 
     # ── 7. Save CSV ────────────────────────────────────────────────────────────
-    df.to_csv(CFG["output_csv"], index_label="Rank")
-    print(f"\n  [✓] Results saved → {CFG['output_csv']}")
+    csv_path = os.path.join(CFG["output_dir"], CFG["output_csv"])
+    df.to_csv(csv_path, index_label="Rank")
+    print(f"\n  [✓] Results saved → {csv_path}")
 
     # ── 8. Plots ───────────────────────────────────────────────────────────────
     print("\n[4]  Generating Figures")
     plot_df = df.copy()
     plot_df["Model"] = plot_df["Model"].str.replace(" │ ", "\n", regex=False)
-    plot_results(plot_df, CFG["output_png"])
-    plot_confusion_matrices(conf_records, CFG["output_png"])
+    png_path = os.path.join(CFG["output_dir"], CFG["output_png"])
+    plot_results(plot_df, png_path)
+    plot_confusion_matrices(conf_records, png_path)
 
     # ── 9. Summary ─────────────────────────────────────────────────────────────
     best = df.iloc[0]
