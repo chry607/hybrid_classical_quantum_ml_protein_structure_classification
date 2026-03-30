@@ -1,2 +1,4 @@
 .env
 results.txt
+.env
+.DS_Store
